@@ -57,6 +57,8 @@ plot(DJ)
 ```
 
 
+## Exploring risk-factor time series: individual equities
+
 # Extract 2008-2009 and assign to dj0809
 ```{r}
 dj0809 <- DJ["2008/2009"]
@@ -70,5 +72,204 @@ plot(dj0809)
 ```
 
 
+# Load DJ constituents data
+```{r}
+data(DJ_const)
+```
+
+
+# Apply names() and head() to DJ_const
+```{r}
+names(DJ_const)
+head(DJ_const)
+```
+
+
+# Extract AAPL and GS in 2008-09 and assign to stocks
+```{r}
+stocks <- DJ_const["2008/2009",c("AAPL","GS")]
+```
+
+
+# Plot stocks with plot.zoo()
+```{r}
+plot.zoo(stocks)
+```
+
+## Exploring risk-factor data: exchange rates
+
+# Load exchange rate data
+```{r}
+data(GBP_USD)
+data(EUR_USD)
+```
+
+
+# Plot the two exchange rates
+```{r}
+plot(GBP_USD)
+plot(EUR_USD)
+```
+
+
+# Plot a USD_GBP exchange rate
+```{r}
+plot(1/GBP_USD)
+```
+
+
+# Merge the two exchange rates GBP_USD and EUR_USD
+```{r}
+fx <- merge(GBP_USD, EUR_USD, all = TRUE)
+```
+
+
+# Extract 2010-15 data from fx and assign to fx0015
+```{r}
+fx0015 <- fx["2010/2015"]
+```
+
+
+# Plot the exchange rates in fx0015
+```{r}
+plot.zoo(fx0015)
+```
+
+##Video 2
+
+In QRM, the aim is to model the fluctuations in key risk factors which affect the value of a portfolio.
+
+2. Risk-factor returns
+00:09 - 01:49
+These fluctuations are called the risk-factor changes or risk-factor returns or simply returns. However, there are a few different ways of defining returns. Let (Z_t) be a time series containing the values of a risk factor at a time at a set of regularly-spaced times, which could represent days, weeks, months, etc. For illustration, let's suppose it is a daily series. Here are three different ways of defining risk-factor returns (X_t): In the first definition, the returns are the differences of the risk-factor values, known as simple returns. This is the simplest definition but not the most common. It tends to be used when the risk factors have very small values close to zero (like certain interest-rate series). The second definition is the easiest to interpret. The relative returns are the differences divided by the initial values. If you multiply the relative returns by one hundred, you get percentage changes. So if a stock has a relative return of point zero two, it gains 2% in value; if it has a relative return of minus point zero three, it falls 3% in value. In the third definition, the returns are the differences of the log-values of the risk factors; these are log-returns. This definition is, in fact, the most widely used. Here are a few of the reasons why log-returns are popular.
+
+3. Properties of log-returns
+01:49 - 03:19
+If you build a model for the log-returns of a risk factor, you know that the risk-factor can never become negative. This is generally a desirable feature for risk factors that are prices and rates. However, some risk factors can become negative under unusual market conditions, an example being short-term interest rates. Log returns are, in fact, very close to relative returns for typical values. It can be shown with some algebra that log of Z_t minus log of Z_(t-1) can be approximated by Z_t minus Z_(t-1) divided by Z_(t-1) Finally, there are a couple of theoretical reasons for using log-returns: It is particularly easy to aggregate them to calculate longer-interval returns, such as weekly or monthly returns, as we will see later in this chapter. Also, there is a very famous model for prices known as the Black-Scholes-Merton model, or geometric Brownian motion (GBM). The model is widely used for pricing derivatives. If a price series follows GBM, then the log-returns will be normally distributed. That's all you really need to know about this model at this stage.
+
+4. Log-returns in R
+03:19 - 03:56
+It's worth remarking, however, that you are going to find that log-returns generally aren't normally distributed in practice, at least for short time horizons. To calculate the log-returns of the S&P 500 index, you apply the functions log and diff in succession. Diff calculates differences. Here is some code to illustrate. Note that you get an NA in the first position when you apply these operations. It is best to remove the first value prior to working with the return series.
+
+5. Log-returns in R (2)
+03:56 - 04:26
+Now let's plot the log-returns. You see, a fairly noisy series mostly oscillating between minus point zero five and plus point zero five, which can be approximately interpreted as 5% movements up and down. However, there are some very extreme values. The largest negative return corresponds to the famous stock market crash on Black Monday in 1987.
+
+##Exploring return series
+
+# Compute the log-returns of dj0809 and assign to dj0809_x
+```{r}
+dj0809_x <- diff(log(dj0809))
+```
+
+
+# Plot the log-returns
+```{r}
+plot(dj0809_x)
+```
+
+
+# Compute the log-returns of djstocks and assign to djstocks_x
+```{r}
+djstocks <- stocks
+djstocks_x <- diff(log(djstocks))
+```
+
+
+# Plot the two share returns
+```{r}
+plot.zoo(djstocks_x)
+```
+
+
+# Compute the log-returns of GBP_USD and assign to erate_x
+```{r}
+erate_x <- diff(log(GBP_USD))
+
+```
+
+# Plot the log-returns
+```{r}
+plot(erate_x)
+```
+
+
+##Different ways of plotting risk-factor and return series
+
+# Plot djstocks in four separate plots
+```{r}
+plot.zoo(djstocks)
+```
+
+
+# Plot djstocks in one plot and add legend
+```{r}
+plot.zoo(djstocks, plot.type="single", col=c(1:4))
+legend(julian(x = as.Date("2009-01-01")), y = 70, legend = names(DJ_const)[1:4], fill = 1:4)
+```
+
+
+# Compute log-returns and assign to djstocks_x
+```{r}
+djstocks_x <- diff(log(djstocks))
+```
+
+
+# Plot djstocks_x in four separate plots
+```{r}
+plot.zoo(djstocks_x)
+```
+
+
+# Plot djstocks_x with vertical bars
+```{r}
+plot.zoo(djstocks_x, type="h")
+```
+
+##Video 3
+
+1. Aggregating log-returns
+00:00 - 00:04
+2. Aggregating log-returns
+00:04 - 01:23
+I remarked before that it is easy to aggregate shorter interval log-returns like daily returns to obtain longer-interval returns like weekly or monthly returns. Effectively you just add them up! Why would you want to do this? Well, by aggregating returns, you can study the risks over longer time horizons, such as a month, a quarter, or a year. There is some simple mathematics behind the aggregation of log-returns. Let's assume that the series (X_t) are daily log-returns calculated from daily risk-factor values (Z_t). Let's assume further that (Z_t) is a price series for some asset that is traded on weekdays. To get the log-return for a whole trading week starting on day t (effectively the previous Friday evening price before markets open on the Monday morning) and ending on day t+5 (Friday evening again), you would calculate the difference log(Z_{t+5}) - log(Z_t). It can be shown that this is just the sum of the log-returns for each of the trading days. And a similar calculation works for any aggregation period.
+
+3. Aggregating log-returns in R
+01:23 - 02:21
+To do this in R, you can use a set of functions in the xts package with names like apply weekly and apply monthly. If the object sp500x is an xts object contains daily log-returns, you obtain weekly returns by applying the sum function within the apply weekly function. Note how the returns now have date stamps that are seven days apart. Similarly, to get monthly returns, you apply the sum function within the apply monthly function. Now the date stamps are the last days of each calendar month. Note that if you have a multivariate time series containing, for example, multiple stock prices, you have to apply the function colSums() instead of sum(). Look out for an example of that at the end of the next exercise.
+
+
+##Aggregating log-return series
+
+# Plot djx
+```{r}
+djx <- diff(log(DJ["2000/2015"]))
+plot(djx)
+```
+
+
+# Plot weekly log-returns of djx
+```{r}
+plot(apply.weekly(djx,sum),type="h" )
+```
+
+
+# Plot monthly log-returns of djx
+```{r}
+plot(apply.monthly(djx,sum),type="h" )
+```
+
+
+# Plot djreturns
+```{r}
+djreturns <- diff(log(DJ_const["2000/2015",1:4]))
+plot.zoo(djreturns)
+```
+
+
+# Plot monthly log-returns of djreturns
+```{r}
+plot.zoo(apply.monthly(djreturns,colSums),type="h")
+```
 
 
